@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState} from 'react'
+import { useEffect, useRef, useState } from 'react'
 import CardComponent from '../../components/card/card'
 import ButtonComponent from '../../components/Button/button'
 import InputComponent from '../../components/input/input'
@@ -8,21 +8,18 @@ import { ChatUtils } from '../../utils/helperFunction'
 import { useRecoilState } from 'recoil'
 import { Room } from '../../utils/states/roomVar'
 import { ChatText } from '../../utils/states/chatText'
-import SmileSVG from '../../assets/smile'
 import { ChatArr } from '../../utils/states/chatArr'
 import { UserId } from '../../utils/states/userid'
-import Picker from '@emoji-mart/react'
-import data from '@emoji-mart/data'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
-export default function ChatPage ({ onSelect }: any) {
+export default function ChatPage () {
     const wsRef = useRef<WebSocket | null>(null)
     const [chats, setChats] = useRecoilState(ChatArr)
     const [userID, setUserID] = useRecoilState(UserId)
     const [roomVar, setRoomVar] = useRecoilState(Room)
     const [chat, setChat] = useRecoilState(ChatText)
-    const [open, setOpen] = useState(false)
+    const [aiTyping, setAiTyping] = useState(false)
     const roomRef = useRef("")
     const userRef = useRef("")
     const navigate = useNavigate()
@@ -79,6 +76,9 @@ export default function ChatPage ({ onSelect }: any) {
       ws.onmessage = (event: any) => {
         const res = JSON.parse(event.data)
         setChats(m => [...m, {message: res.message, client: res.clientId}])
+        if(res.clientId === "AI") {
+          setAiTyping(false)
+        }
       }
     },[])
   
@@ -88,6 +88,10 @@ export default function ChatPage ({ onSelect }: any) {
       if(chat.trim().length === 0){
         alert("enter chat")
         return
+      }
+      const isAIChat = roomRef.current.startsWith("ChatWithAI")
+      if (isAIChat) {
+        setAiTyping(true)  
       }
       wsRef.current?.send(JSON.stringify({
         type: "chat",
@@ -132,29 +136,7 @@ export default function ChatPage ({ onSelect }: any) {
                 {userID}
               </div>
                 <div className='flex w-full justify-end items-center gap-2 group'>
-                  <div onClick={()=>setOpen(!open)} className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-100">
-                    {open===true ? (
-                      <div className=''>
-                    <Picker
-                      data={data}
-                      onEmojiSelect={onSelect}
-                      perLine={5}          // Only 5 emojis per row
-                      maxFrequentRows={1}  // Only 1 row of frequently used
-                      previewPosition="none"
-                      searchPosition="none"
-                      skinTonePosition="none"
-                      navPosition="none"
-                      emojiSize={28}
-                      emojiButtonSize={40}
-                      showCategoryButtons={false}
-                      showPreview={false}
-                      showSkinTones={false}
-                      categories={['frequent']}  // Show only frequent emojis
-                      className="!h-[60px] !p-0 !m-0 overflow-hidden shadow-none border-none"
-                    />
-                    </div>
-                    ) : null}
-                    <SmileSVG/>
+                  <div className="cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-100">
                   </div>
                   <div className='bg-black rounded-[20px] text-[12px] text-white flex flex-col max-w-[45%] whitespace-pre-wrap break-words justify-start items-start shadow-sm pt-2 pb-2 pr-4 pl-4'>
                     {object.message}
@@ -172,6 +154,14 @@ export default function ChatPage ({ onSelect }: any) {
             </div>
           ))
           ))}
+          {aiTyping && (
+            <div className='flex flex-col pr-10'>
+              <div className='text-[8px] self-start flex'>AI</div>
+              <div className='bg-slate-100/10 self-start rounded-[20px] text-[12px] text-black flex flex-col max-w-[45%] justify-start items-start shadow-sm pt-2 pb-2 pr-4 pl-4'>
+                <div className="animate-pulse">Typing...</div>
+              </div>
+            </div>
+          )}
           </div>
           <div className='w-full flex flex-row justify-between items-center pr-10 pl-10'>
             <InputComponent placeholder={ChatUtils.InputPlaceholder} value={chat} onchange={(e: any)=>setChat(e.target.value)} style={{
