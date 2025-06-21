@@ -22,6 +22,7 @@ export default function ChatPage () {
     const [aiTyping, setAiTyping] = useState(false)
     const roomRef = useRef("")
     const userRef = useRef("")
+    const awaitingAIResponseRef = useRef(false)
     const navigate = useNavigate()
 
     useEffect(()=>{
@@ -76,9 +77,10 @@ export default function ChatPage () {
       ws.onmessage = (event: any) => {
         const res = JSON.parse(event.data)
         setChats(m => [...m, {message: res.message, client: res.clientId}])
-        if(res.clientId === "AI") {
+        if (res.clientId.startsWith("AI") && awaitingAIResponseRef.current) {
           setAiTyping(false)
-        }
+          awaitingAIResponseRef.current = false
+        }        
       }
     },[])
   
@@ -92,6 +94,7 @@ export default function ChatPage () {
       const isAIChat = roomRef.current.startsWith("ChatWithAI")
       if (isAIChat) {
         setAiTyping(true)  
+        awaitingAIResponseRef.current = true 
       }
       wsRef.current?.send(JSON.stringify({
         type: "chat",
