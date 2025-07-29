@@ -20,7 +20,7 @@ export default function Home () {
 
     async function createRoomID (id: string, p: any) {
       if(p === "Join") {
-        const call = await axios.get("http://localhost:5001/getAllId")
+        const call = await axios.get("https://chitchatbe-production.up.railway.app/getAllId")
         console.log(call);
         const check = call.data.includes(id.trim())
         if(!check) {

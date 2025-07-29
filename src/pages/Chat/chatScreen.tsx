@@ -40,7 +40,8 @@ export default function ChatPage () {
       }
 
       const getChats = async function () {
-        const res = await axios.get(`http://localhost:5001/getChats/${getRoomVar}`)
+        // const res = await axios.get(`http://localhost:5001/getChats/${getRoomVar}`)
+        const res = await axios.get(`https://chitchatbe-production.up.railway.app/getChats/${getRoomVar}`)
         console.log(res.data);
         
         if(res.data === "New Chat Room"){
