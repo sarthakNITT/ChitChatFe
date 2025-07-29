@@ -64,7 +64,8 @@ export default function ChatPage () {
       console.log(getRoomVar);
       console.log(getUserID);
       
-      const ws = new WebSocket("ws://localhost:8080")
+      // const ws = new WebSocket("ws://localhost:8080")
+      const ws = new WebSocket("wss://chitchatbe-production.up.railway.app")
       wsRef.current = ws
       ws.onopen = () => {
         ws.send(JSON.stringify({
